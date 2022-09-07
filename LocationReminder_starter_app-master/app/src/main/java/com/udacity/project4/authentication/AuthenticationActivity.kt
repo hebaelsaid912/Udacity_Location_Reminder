@@ -38,6 +38,7 @@ class AuthenticationActivity : AppCompatActivity() {
         if (auth.currentUser != null) {
             Toast.makeText(this, "This email was already authenticated", Toast.LENGTH_LONG).show()
             startActivity(Intent(this, RemindersActivity::class.java))
+            finish()
         } else {
             Toast.makeText(this, "You need to login", Toast.LENGTH_LONG).show()
         }
@@ -53,6 +54,7 @@ class AuthenticationActivity : AppCompatActivity() {
         Log.d(TAG, "registerForActivityResult: result.code: ${result?.resultCode}")
         Toast.makeText(this, "Login Successfully", Toast.LENGTH_LONG).show()
         startActivity(Intent(this, RemindersActivity::class.java))
+        finish()
     }
 
     private fun startSignIn() {
