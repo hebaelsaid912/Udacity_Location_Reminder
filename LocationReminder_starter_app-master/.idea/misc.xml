@@ -5,6 +5,11 @@
       <map>
         <entry key="..\:/Users/rbtuser/AndroidStudioProjects/LocationReminder_starter_app-master/LocationReminder_starter_app-master/app/src/main/res/layout/activity_authentication.xml" value="0.2164855072463768" />
         <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/activity_authentication.xml" value="0.17255434782608695" />
+        <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/activity_reminder_description.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/activity_reminders.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/fragment_reminders.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/fragment_save_reminder.xml" value="0.22826086956521738" />
+        <entry key="..\:/Users/rbtuser/Documents/GitHub/Udacity/LocationReminder_starter_app-master/app/src/main/res/layout/fragment_select_location.xml" value="0.22826086956521738" />
       </map>
     </option>
   </component>

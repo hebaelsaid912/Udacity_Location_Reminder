@@ -11,11 +11,17 @@ import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.dsl.module
 
+val permissionRequestList: MutableList<String>  by lazy {
+    MyApp.permissionRequest
+}
 class MyApp : Application() {
+    companion object{
+        lateinit var permissionRequest:MutableList<String>
+    }
 
     override fun onCreate() {
         super.onCreate()
-
+        permissionRequest = ArrayList()
         /**
          * use Koin Library as a service locator
          */
