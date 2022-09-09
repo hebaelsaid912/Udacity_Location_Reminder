@@ -69,4 +69,6 @@ class AuthenticationActivity : AppCompatActivity() {
             .build()
         signInLauncher.launch(signInIntent)
     }
+    private fun startSignUp() {
+    }
 }
