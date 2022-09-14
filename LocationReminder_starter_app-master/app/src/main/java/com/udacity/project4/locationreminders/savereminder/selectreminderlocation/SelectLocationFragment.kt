@@ -10,8 +10,11 @@ import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
+import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
+import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ApiException
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -20,20 +23,46 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.gms.tasks.CancellationTokenSource
 import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
+import com.udacity.project4.utils.Permissions
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.*
 
-class SelectLocationFragment : BaseFragment() {
+private const val TAG = "SelectLocationFragment"
+class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     //Use Koin to get the view model of the SaveReminder
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSelectLocationBinding
+    private lateinit var map: GoogleMap
+    private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
+    private var selectedLocName: String = ""
+    private var selectedLocLat: Double = 0.0
+    private var selectedLocLng: Double = 0.0
+    private var activeMarker: Marker? = null
+
+    // used in fusedLocationProviderClient.getCurrentLocation
+    private lateinit var cancellationSource: CancellationTokenSource
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            if (!granted) {
+                Toast.makeText(
+                    requireContext(),
+                    "Foreground location permission is NOT granted!",
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+            }
+            doThisWithForegroundLocationPermission(granted)
+        }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,11 +77,27 @@ class SelectLocationFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(true)
 
 //        TODO: add the map setup implementation
+        val mapFragment =
+            childFragmentManager.findFragmentById(binding.googleMap.id) as SupportMapFragment
+        mapFragment.getMapAsync(this) // calling onMapReady()
 //        TODO: zoom to the user location after taking his permission
 //        TODO: add style to the map
 //        TODO: put a marker to location that the user selected
+        fusedLocationProviderClient =
+            LocationServices.getFusedLocationProviderClient(requireActivity())
 
-
+        // Add clickListener to the confirmButton
+        binding.confirmButton.setOnClickListener {
+            if (selectedLocName.isEmpty()) {
+                Toast.makeText(requireContext(), "No location is selected!", Toast.LENGTH_LONG)
+                    .show()
+            } else {
+                _viewModel.reminderSelectedLocationStr.value = selectedLocName
+                _viewModel.latitude.value = selectedLocLat
+                _viewModel.longitude.value = selectedLocLng
+                findNavController().popBackStack()
+            }
+        }
 //        TODO: call this function after the user confirms on the selected location
         onLocationSelected()
 
@@ -73,19 +118,118 @@ class SelectLocationFragment : BaseFragment() {
     override fun onOptionsItemSelected(item: MenuItem) = when (item.itemId) {
         // TODO: Change the map type based on the user's selection.
         R.id.normal_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_NORMAL
             true
         }
         R.id.hybrid_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_HYBRID
             true
         }
         R.id.satellite_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_SATELLITE
             true
         }
         R.id.terrain_map -> {
+            map.mapType = GoogleMap.MAP_TYPE_TERRAIN
             true
         }
         else -> super.onOptionsItemSelected(item)
     }
+    private fun selectLocation(name: String, lat: Double, lng: Double) {
+        selectedLocName = name
+        selectedLocLat = lat
+        selectedLocLng = lng
+    }
 
+    override fun onStart() {
+        super.onStart()
+        cancellationSource = CancellationTokenSource()
+    }
+    override fun onStop() {
+        super.onStop()
+        cancellationSource.cancel()
+    }
 
+    override fun onMapReady(googleMap: GoogleMap) {
+        map = googleMap
+
+        if (Permissions.checkLocationPermission(requireContext())
+        ) {
+            doThisWithForegroundLocationPermission(true)
+        } else {
+            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+    private fun doThisWithForegroundLocationPermission(granted: Boolean) {
+        if (granted) {
+            updateMapUISettings(true)
+            getDeviceLocation {
+                val zoomLevel = 15f
+                map.moveCamera(CameraUpdateFactory.newLatLngZoom(it, zoomLevel))
+
+                selectLocation("Default Current Location", it.latitude, it.longitude)
+                activeMarker?.remove()
+                activeMarker = map.addMarker(MarkerOptions().position(it))
+            }
+        } else {
+            updateMapUISettings(false)
+        }
+
+        map.setOnMapLongClickListener { latLng ->
+            // A Snippet is Additional text that's displayed below the title.
+            val snippet = String.format(
+                Locale.getDefault(),
+                "Lat: %1$.5f, Long: %2$.5f",
+                latLng.latitude,
+                latLng.longitude
+            )
+            selectLocation("Custom Location", latLng.latitude, latLng.longitude)
+
+            activeMarker?.remove()
+            activeMarker = map.addMarker(
+                MarkerOptions()
+                    .position(latLng)
+                    .title(selectedLocName)
+                    .snippet(snippet)
+            )
+        }
+        map.setOnPoiClickListener { poi ->
+            activeMarker?.remove()
+            activeMarker = map.addMarker(
+                MarkerOptions()
+                    .position(poi.latLng)
+                    .title(poi.name)
+            )
+            activeMarker?.showInfoWindow()
+            selectLocation(poi.name, poi.latLng.latitude, poi.latLng.longitude)
+        }    }
+    private fun updateMapUISettings(granted: Boolean) {
+        try {
+            map.isMyLocationEnabled = granted
+            map.uiSettings.isMyLocationButtonEnabled = granted
+        } catch (e: SecurityException) {
+            Log.e("Exception: %s", e.message, e)
+        }
+    }
+    private fun getDeviceLocation(callback: (LatLng) -> Unit) {
+        /*
+         * Get the best and most recent location of the device, which may be null in rare
+         * cases when a location is not available.
+         */
+        try {
+            val locationResult = fusedLocationProviderClient.getCurrentLocation(
+                LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
+                cancellationSource.token
+            )
+            locationResult.addOnCompleteListener(requireActivity()) { task ->
+                if (task.isSuccessful && task.result != null) {
+                    // return the current location of the device.
+                    val latLng = LatLng(task.result.latitude, task.result.longitude)
+                    callback(latLng)
+                }
+            }
+        } catch (e: SecurityException) {
+            Log.d(TAG, "getDeviceLocation: ${e.message}")
+        }
+    }
 }

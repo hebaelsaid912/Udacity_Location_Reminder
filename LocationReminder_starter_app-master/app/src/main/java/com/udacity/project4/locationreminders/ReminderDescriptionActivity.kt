@@ -40,10 +40,5 @@ class ReminderDescriptionActivity : AppCompatActivity() {
                 reminderDataItem.longitude,reminderDataItem.id
             )
         }
-        /*binding.reminderDetailTitle.text = reminder.title
-        binding.reminderDetailLocation.text = reminder.location
-        reminder.description?.let{
-            binding.reminderDetailDescription.text =it
-        }*/
     }
 }
