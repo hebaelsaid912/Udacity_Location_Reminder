@@ -81,14 +81,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 Toast.makeText(requireContext(), "No location is selected!", Toast.LENGTH_LONG)
                     .show()
             } else {
-                _viewModel.reminderSelectedLocationStr.value = selectedLocName
-                _viewModel.latitude.value = selectedLocLat
-                _viewModel.longitude.value = selectedLocLng
-                findNavController().popBackStack()
+                onLocationSelected()
             }
         }
-//        TODO: call this function after the user confirms on the selected location
-        onLocationSelected()
 
         return binding.root
     }
@@ -97,6 +92,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         //        TODO: When the user confirms on the selected location,
         //         send back the selected location details to the view model
         //         and navigate back to the previous fragment to save the reminder and add the geofence
+        _viewModel.reminderSelectedLocationStr.value = selectedLocName
+        _viewModel.latitude.value = selectedLocLat
+        _viewModel.longitude.value = selectedLocLng
+        findNavController().popBackStack()
     }
 
 
