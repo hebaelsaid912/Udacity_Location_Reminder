@@ -2,21 +2,13 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
-import android.app.Activity
-import android.content.Intent
-import android.content.IntentSender
-import android.content.pm.PackageManager
-import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
-import com.google.android.gms.common.api.ApiException
-import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -24,10 +16,8 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.CancellationTokenSource
-import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
-import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.utils.Permissions
@@ -48,7 +38,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var selectedLocLng: Double = 0.0
     private var activeMarker: Marker? = null
 
-    // used in fusedLocationProviderClient.getCurrentLocation
     private lateinit var cancellationSource: CancellationTokenSource
 
     private val requestPermissionLauncher =
@@ -163,7 +152,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun doThisWithForegroundLocationPermission(granted: Boolean) {
         if (granted) {
             updateMapUISettings(true)
-            getDeviceLocation {
+            getCurrentDeviceLocation {
                 val zoomLevel = 15f
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(it, zoomLevel))
 
@@ -176,7 +165,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
 
         map.setOnMapLongClickListener { latLng ->
-            // A Snippet is Additional text that's displayed below the title.
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -211,11 +199,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.e("Exception: %s", e.message, e)
         }
     }
-    private fun getDeviceLocation(callback: (LatLng) -> Unit) {
-        /*
-         * Get the best and most recent location of the device, which may be null in rare
-         * cases when a location is not available.
-         */
+    private fun getCurrentDeviceLocation(callback: (LatLng) -> Unit) {
         try {
             val locationResult = fusedLocationProviderClient.getCurrentLocation(
                 LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
@@ -223,13 +207,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             )
             locationResult.addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful && task.result != null) {
-                    // return the current location of the device.
                     val latLng = LatLng(task.result.latitude, task.result.longitude)
                     callback(latLng)
                 }
             }
-        } catch (e: SecurityException) {
-            Log.d(TAG, "getDeviceLocation: ${e.message}")
+        } catch (ex: SecurityException) {
+            Log.d(TAG, "getDeviceLocation: ${ex.message}")
         }
     }
 }

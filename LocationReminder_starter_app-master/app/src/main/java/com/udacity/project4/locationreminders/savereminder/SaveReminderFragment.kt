@@ -36,8 +36,6 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
     private lateinit var geofencingClient: GeofencingClient
-    private val runningQOrLater =
-        android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q
     private var isBackgroundPermissionOk = false
 
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -180,5 +178,10 @@ class SaveReminderFragment : BaseFragment() {
                 }
             }
         }
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        _viewModel.onClear()
     }
 }
