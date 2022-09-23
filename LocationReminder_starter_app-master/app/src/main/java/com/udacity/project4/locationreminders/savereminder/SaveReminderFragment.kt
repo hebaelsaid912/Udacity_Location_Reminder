@@ -1,12 +1,9 @@
 package com.udacity.project4.locationreminders.savereminder
 
 import android.Manifest
-import android.annotation.SuppressLint
-import android.annotation.TargetApi
 import android.app.PendingIntent
 import android.content.Intent
 import android.content.IntentSender
-import android.content.pm.PackageManager
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -16,8 +13,6 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.app.ActivityCompat
-import androidx.core.content.ContextCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
@@ -47,7 +42,7 @@ class SaveReminderFragment : BaseFragment() {
     private val requestDeviceLocationOn = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) {
-        checkDeviceLocationSettings(false)
+        checkDeviceLocationSettings()
     }
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -94,13 +89,7 @@ class SaveReminderFragment : BaseFragment() {
                 ).show()
                 return@setOnClickListener
             }
-            isBackgroundPermissionOk = Permissions.checkBackgroundLocationPermission(requireContext())
-
-            if (isBackgroundPermissionOk) {
-                checkDeviceLocationSettings(true)
-                return@setOnClickListener
-            }
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
+           fetchBackgroundLocationPermission()
         }
     }
 
@@ -128,32 +117,27 @@ class SaveReminderFragment : BaseFragment() {
         }.build()
     }
 
-    private fun checkDeviceLocationSettings(resolve: Boolean = true) {
-        val locationRequest = LocationRequest.create().apply {
+    private fun checkDeviceLocationSettings() {
+        val requestLocation = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
-        val builder = LocationSettingsRequest.Builder().addLocationRequest(locationRequest)
+        val builder = LocationSettingsRequest.Builder().addLocationRequest(requestLocation)
         val settingsClient = LocationServices.getSettingsClient(requireActivity())
         val locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build())
-        locationSettingsResponseTask.addOnFailureListener { exception ->
-            if (exception is ResolvableApiException && resolve) {
+        locationSettingsResponseTask.addOnFailureListener { ex ->
+            if (ex is ResolvableApiException ) {
                 try {
                     val intentSenderRequest =
-                        IntentSenderRequest.Builder(exception.resolution).build()
+                        IntentSenderRequest.Builder(ex.resolution).build()
                     requestDeviceLocationOn.launch(intentSenderRequest)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(
                         TAG,
-                        "Error getting location settings resolution: " + sendEx.message
+                        "Error open location settings : " + sendEx.message
                     )
                 }
             } else {
-                Snackbar.make(
-                    binding.saveReminder,
-                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
-                ).setAction(android.R.string.ok) {
-                    checkDeviceLocationSettings()
-                }.show()
+                checkDeviceLocationSettings()
             }
         }
         locationSettingsResponseTask.addOnCompleteListener { locationSettingResponse ->
@@ -167,7 +151,7 @@ class SaveReminderFragment : BaseFragment() {
                         }
                         addOnFailureListener { ex ->
                             Toast.makeText(
-                                requireContext(), "Failed to add a geofence",
+                                requireContext(), "Failed to add geofence",
                                 Toast.LENGTH_SHORT
                             ).show()
                             if (ex.message != null) {
@@ -178,6 +162,13 @@ class SaveReminderFragment : BaseFragment() {
                 }
             }
         }
+    }
+    private fun fetchBackgroundLocationPermission() {
+        isBackgroundPermissionOk = Permissions.checkBackgroundLocationPermission(requireContext())
+        if (isBackgroundPermissionOk) {
+            checkDeviceLocationSettings()
+        }
+        requestPermissionLauncher.launch(Manifest.permission.ACCESS_BACKGROUND_LOCATION)
     }
 
     override fun onDestroy() {
