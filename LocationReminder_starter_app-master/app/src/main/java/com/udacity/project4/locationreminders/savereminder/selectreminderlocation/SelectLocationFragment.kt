@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
@@ -39,20 +40,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private var activeMarker: Marker? = null
 
     private lateinit var cancellationSource: CancellationTokenSource
-
-    private val requestPermissionLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            if (!granted) {
-                Toast.makeText(
-                    requireContext(),
-                    "Foreground location permission is NOT granted!",
-                    Toast.LENGTH_LONG
-                )
-                    .show()
-            }
-            doThisWithForegroundLocationPermission(granted)
-        }
-
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
@@ -64,11 +52,27 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            Log.d(TAG, "onCreateView: permissionLauncher ")
+             val isLocationGranted =  permissions[Manifest.permission.ACCESS_FINE_LOCATION]
+            if (!isLocationGranted!!) {
+                Toast.makeText(
+                    requireContext(),
+                    " location permission is NOT granted!",
+                    Toast.LENGTH_LONG
+                )
+                    .show()
+                fetchLocationPermission()
+            }else {
+                selectCurrentLocationOnMap()
+            }
+
+        }
 
 //        TODO: add the map setup implementation
         val mapFragment =
             childFragmentManager.findFragmentById(binding.googleMap.id) as SupportMapFragment
-        mapFragment.getMapAsync(this) // calling onMapReady()
+        mapFragment.getMapAsync(this)
 //        TODO: zoom to the user location after taking his permission
 //        TODO: add style to the map
 //        TODO: put a marker to location that the user selected
@@ -78,7 +82,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         // Add clickListener to the confirmButton
         binding.confirmButton.setOnClickListener {
             if (selectedLocName.isEmpty()) {
-                Toast.makeText(requireContext(), "No location is selected!", Toast.LENGTH_LONG)
+                Toast.makeText(requireContext(), "No location selected!", Toast.LENGTH_LONG)
                     .show()
             } else {
                 onLocationSelected()
@@ -123,7 +127,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         else -> super.onOptionsItemSelected(item)
     }
-    private fun selectLocation(name: String, lat: Double, lng: Double) {
+    private fun setLocationData(name: String, lat: Double, lng: Double) {
         selectedLocName = name
         selectedLocLat = lat
         selectedLocLng = lng
@@ -143,24 +147,23 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         if (Permissions.checkLocationPermission(requireContext())
         ) {
-            doThisWithForegroundLocationPermission(true)
+            selectCurrentLocationOnMap()
         } else {
-            requestPermissionLauncher.launch(Manifest.permission.ACCESS_FINE_LOCATION)
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
         }
     }
-    private fun doThisWithForegroundLocationPermission(granted: Boolean) {
-        if (granted) {
-            updateMapUISettings(true)
+    private fun selectCurrentLocationOnMap() {
+        if (checkLocationPermission()) {
+            updateMap()
             getCurrentDeviceLocation {
                 val zoomLevel = 15f
                 map.moveCamera(CameraUpdateFactory.newLatLngZoom(it, zoomLevel))
-
-                selectLocation("Default Current Location", it.latitude, it.longitude)
+                setLocationData("Current Location", it.latitude, it.longitude)
                 activeMarker?.remove()
                 activeMarker = map.addMarker(MarkerOptions().position(it))
             }
         } else {
-            updateMapUISettings(false)
+            updateMap()
         }
 
         map.setOnMapLongClickListener { latLng ->
@@ -170,8 +173,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                 latLng.latitude,
                 latLng.longitude
             )
-            selectLocation("Custom Location", latLng.latitude, latLng.longitude)
-
+            setLocationData("Custom Selected Location", latLng.latitude, latLng.longitude)
             activeMarker?.remove()
             activeMarker = map.addMarker(
                 MarkerOptions()
@@ -188,30 +190,40 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .title(poi.name)
             )
             activeMarker?.showInfoWindow()
-            selectLocation(poi.name, poi.latLng.latitude, poi.latLng.longitude)
-        }    }
-    private fun updateMapUISettings(granted: Boolean) {
+            setLocationData(poi.name, poi.latLng.latitude, poi.latLng.longitude)
+        }
+    }
+    private fun updateMap() {
         try {
-            map.isMyLocationEnabled = granted
-            map.uiSettings.isMyLocationButtonEnabled = granted
+            map.isMyLocationEnabled = checkLocationPermission()
+            map.uiSettings.isMyLocationButtonEnabled = checkLocationPermission()
         } catch (e: SecurityException) {
-            Log.e("Exception: %s", e.message, e)
+            Log.d(TAG, "Exception: ${e.message}")
         }
     }
     private fun getCurrentDeviceLocation(callback: (LatLng) -> Unit) {
         try {
-            val locationResult = fusedLocationProviderClient.getCurrentLocation(
+            val getCurrentLocation = fusedLocationProviderClient.getCurrentLocation(
                 LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY,
                 cancellationSource.token
             )
-            locationResult.addOnCompleteListener(requireActivity()) { task ->
+            getCurrentLocation.addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful && task.result != null) {
                     val latLng = LatLng(task.result.latitude, task.result.longitude)
                     callback(latLng)
                 }
             }
         } catch (ex: SecurityException) {
-            Log.d(TAG, "getDeviceLocation: ${ex.message}")
+            Log.d(TAG, "getCurrentDeviceLocation: ${ex.message}")
+        }
+    }
+    private fun checkLocationPermission(): Boolean {
+        return Permissions.checkLocationPermission(requireContext())
+    }
+
+    private fun fetchLocationPermission() {
+        if (!checkLocationPermission()) {
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
         }
     }
 }
