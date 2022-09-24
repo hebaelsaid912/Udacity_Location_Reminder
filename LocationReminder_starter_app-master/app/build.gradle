@@ -37,6 +37,10 @@ android {
         includeAndroidResources = true
         returnDefaultValues = true
     }
+    /*sourceSets {
+        main.java.srcDirs += 'src/main/kotlin'
+        test.java.srcDirs += 'src/test/kotlin'
+    }*/
 
     dataBinding {
         enabled = true
@@ -60,7 +64,9 @@ dependencies {
     implementation "androidx.legacy:legacy-support-v4:$androidXLegacySupport"
     implementation "androidx.annotation:annotation:$androidXAnnotations"
 
+    implementation "androidx.cardview:cardview:$cardVersion"
     implementation "com.google.android.material:material:$materialVersion"
+    implementation "androidx.recyclerview:recyclerview:$recyclerViewVersion"
 
     implementation "com.google.code.gson:gson:$gsonVersion"
 
@@ -82,7 +88,6 @@ dependencies {
 
     //Coroutines Dependencies
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-android:$coroutinesVersion"
-
 
     //Koin
     implementation "org.koin:koin-android:$koinVersion"
@@ -109,6 +114,7 @@ dependencies {
     androidTestImplementation "androidx.test.ext:junit-ktx:$androidXTestExtKotlinRunnerVersion"
     androidTestImplementation "org.jetbrains.kotlinx:kotlinx-coroutines-test:$coroutinesVersion"
     androidTestImplementation "androidx.test:rules:$androidXTestRulesVersion"
+    androidTestImplementation "com.google.truth:truth:1.0.1"
     androidTestImplementation "androidx.room:room-testing:$roomVersion"
     androidTestImplementation "androidx.arch.core:core-testing:$archTestingVersion"
     androidTestImplementation "org.robolectric:annotations:$robolectricVersion"
@@ -127,17 +133,14 @@ dependencies {
     androidTestImplementation("org.koin:koin-test:$koinVersion") { exclude group: 'org.mockito' }
 
 
-
     //Maps & Geofencing
-    implementation "com.google.android.gms:play-services-location:20.0.0"
-    implementation "com.google.android.gms:play-services-maps:18.1.0"
+    implementation "com.google.android.gms:play-services-location:19.0.1"
+    implementation "com.google.android.gms:play-services-maps:18.0.2"
 
 // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:29.2.0')
     implementation 'com.google.firebase:firebase-analytics'
     // Firebase Auth
-    implementation "com.firebaseui:firebase-ui-auth:8.0.1"
-    implementation 'com.google.firebase:firebase-auth-ktx:21.0.8'
-
+    implementation "com.firebaseui:firebase-ui-auth:7.2.0"
 
 }

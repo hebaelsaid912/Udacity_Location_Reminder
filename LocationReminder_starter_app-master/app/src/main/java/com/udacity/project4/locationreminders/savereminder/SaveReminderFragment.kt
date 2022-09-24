@@ -31,6 +31,8 @@ class SaveReminderFragment : BaseFragment() {
     override val _viewModel: SaveReminderViewModel by inject()
     private lateinit var binding: FragmentSaveReminderBinding
     private lateinit var geofencingClient: GeofencingClient
+
+    private lateinit var requestPermissionLauncher : ActivityResultLauncher<String>
     private var isBackgroundPermissionOk = false
 
     private val geofencePendingIntent: PendingIntent by lazy {
@@ -38,7 +40,6 @@ class SaveReminderFragment : BaseFragment() {
         PendingIntent.getBroadcast(requireContext(), 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
     }
     private var reminderFromViewModel = ReminderDataItem("", "", "", 0.0, 0.0)
-    private lateinit var requestPermissionLauncher : ActivityResultLauncher<String>
     private val requestDeviceLocationOn = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
     ) {
@@ -47,10 +48,9 @@ class SaveReminderFragment : BaseFragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
-
         setDisplayHomeAsUpEnabled(true)
         requestPermissionLauncher =
             registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
@@ -65,7 +65,7 @@ class SaveReminderFragment : BaseFragment() {
         super.onViewCreated(view, savedInstanceState)
         binding.lifecycleOwner = this
         binding.selectLocation.setOnClickListener {
-            //            Navigate to another fragment to get the user location
+            // Navigate to another fragment to get the user location
             _viewModel.navigationCommand.value =
                 NavigationCommand.To(SaveReminderFragmentDirections.actionSaveReminderFragmentToSelectLocationFragment())
         }
