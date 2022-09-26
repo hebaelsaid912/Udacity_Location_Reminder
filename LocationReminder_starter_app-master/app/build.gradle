@@ -132,12 +132,11 @@ dependencies {
     androidTestImplementation "com.linkedin.dexmaker:dexmaker-mockito:$dexMakerVersion"
     androidTestImplementation("org.koin:koin-test:$koinVersion") { exclude group: 'org.mockito' }
 
-
     //Maps & Geofencing
     implementation "com.google.android.gms:play-services-location:19.0.1"
     implementation "com.google.android.gms:play-services-maps:18.0.2"
 
-// Import the Firebase BoM
+    // Import the Firebase BoM
     implementation platform('com.google.firebase:firebase-bom:29.2.0')
     implementation 'com.google.firebase:firebase-analytics'
     // Firebase Auth
