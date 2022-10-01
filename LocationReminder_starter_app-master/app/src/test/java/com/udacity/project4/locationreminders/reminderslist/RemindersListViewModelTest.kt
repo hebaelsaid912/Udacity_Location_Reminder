@@ -3,15 +3,12 @@ package com.udacity.project4.locationreminders.reminderslist
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.udacity.project4.R
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
 import com.udacity.project4.locationreminders.getOrAwaitValue
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import org.hamcrest.CoreMatchers.`is`
-import org.hamcrest.MatcherAssert
-import org.hamcrest.Matchers
 import org.junit.Assert.*
 
 import org.junit.After
@@ -51,7 +48,7 @@ class RemindersListViewModelTest {
 
 
     @Test
-    fun loadRemindersWithCorrectRemindersReturnSuccess() {
+    fun `load reminders with correct reminders return success`() {
         mainCoroutineRule.pauseDispatcher()
         reminderListViewModel!!.loadReminders()
         // check that loading indicator is shown
@@ -61,7 +58,7 @@ class RemindersListViewModelTest {
         assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
     }
     @Test
-    fun loadRemindersWithNullRemindersReturnNoRemindersFound() {
+    fun `load reminders with null reminders return no reminders found`() {
         fakeDataSource = FakeDataSource(null)
         reminderListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
         reminderListViewModel!!.loadReminders()
@@ -69,7 +66,7 @@ class RemindersListViewModelTest {
         assertThat(reminderListViewModel!!.showSnackBar.getOrAwaitValue(), `is`("No reminders found"))
     }
     @Test
-    fun loadRemindersWithListOfRemindersReturnNumberOfRemindersInList() {
+    fun `load reminders with list of reminders return number of reminders in list`() {
         reminderListViewModel!!.loadReminders()
         assertThat(reminderListViewModel!!.remindersList.getOrAwaitValue().size, `is`(remindersList.size))
     }
