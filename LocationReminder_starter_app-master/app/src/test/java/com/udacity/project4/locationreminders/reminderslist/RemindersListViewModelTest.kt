@@ -21,11 +21,9 @@ import org.junit.runner.RunWith
 @RunWith(AndroidJUnit4::class)
 class RemindersListViewModelTest {
 
-    // Executes each task synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
-    // Set the main coroutines dispatcher for unit testing.
     @ExperimentalCoroutinesApi
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
@@ -51,9 +49,7 @@ class RemindersListViewModelTest {
     fun `load reminders with correct reminders return success`() {
         mainCoroutineRule.pauseDispatcher()
         reminderListViewModel!!.loadReminders()
-        // check that loading indicator is shown
         assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(true))
-        // check indicator not showing
         mainCoroutineRule.resumeDispatcher()
         assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
     }

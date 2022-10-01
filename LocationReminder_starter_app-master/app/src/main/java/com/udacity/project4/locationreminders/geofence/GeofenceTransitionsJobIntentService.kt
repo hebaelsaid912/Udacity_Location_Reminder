@@ -18,6 +18,7 @@ import org.koin.android.ext.android.inject
 import kotlin.coroutines.CoroutineContext
 
 private const val TAG = "GeofenceTransitionsJobIntentService"
+
 class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
     private var coroutineJob: Job = Job()
@@ -54,11 +55,12 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
         // Test that the reported transition was of interest.
         if (geofenceTransition == Geofence.GEOFENCE_TRANSITION_ENTER) {
-                sendNotification(geofencingEvent.triggeringGeofences!!)
+            sendNotification(geofencingEvent.triggeringGeofences!!)
 
         } else {
             // Log the error.
-            Log.d(TAG,
+            Log.d(
+                TAG,
                 "Invalid Geofence transition type $geofenceTransition"
             )
         }
@@ -66,7 +68,7 @@ class GeofenceTransitionsJobIntentService : JobIntentService(), CoroutineScope {
 
     //TODO: get the request id of the current geofence
     private fun sendNotification(triggeringGeofences: List<Geofence>) {
-        for ( geofence in triggeringGeofences ) {
+        for (geofence in triggeringGeofences) {
             val requestId = geofence.requestId
 
             //Get the local repository instance

@@ -40,9 +40,9 @@ import org.koin.test.get
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 class RemindersActivityTest : AutoCloseKoinTest() {
-    private var repository: ReminderDataSource?=null
-    private var application: Application?=null
-    private var testModule: Module?=null
+    private var repository: ReminderDataSource? = null
+    private var application: Application? = null
+    private var testModule: Module? = null
 
 
     @get:Rule
@@ -146,7 +146,11 @@ class RemindersActivityTest : AutoCloseKoinTest() {
 
         onView(withId(R.id.addReminderFAB)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
-        onView(withText(application!!.getString(R.string.err_enter_title))).check(matches(isDisplayed()))
+        onView(withText(application!!.getString(R.string.err_enter_title))).check(
+            matches(
+                isDisplayed()
+            )
+        )
 
         activityScenario.close()
     }

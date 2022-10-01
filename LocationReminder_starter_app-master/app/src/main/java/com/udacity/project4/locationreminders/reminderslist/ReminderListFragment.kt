@@ -24,10 +24,12 @@ import com.udacity.project4.utils.setup
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val TAG = "ReminderListFragment"
+
 class ReminderListFragment : BaseFragment() {
     // access location
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     private var isLocationPermissionGranted = false
+
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
     private lateinit var binding: FragmentRemindersBinding
@@ -54,7 +56,8 @@ class ReminderListFragment : BaseFragment() {
                     activity?.finish()
                 }
             })
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        requestPermissionLauncher =
+            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
                 Log.d(TAG, "onCreateView: permissionLauncher ")
                 isLocationPermissionGranted =
                     permissions[Manifest.permission.ACCESS_FINE_LOCATION]

@@ -22,24 +22,30 @@ import org.junit.runner.RunWith
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
 class SaveReminderViewModelTest {
-    // Executes each task synchronously using Architecture Components.
     @get:Rule
     var instantExecutorRule = InstantTaskExecutorRule()
 
-    // Set the main coroutines dispatcher for unit testing.
     @ExperimentalCoroutinesApi
     @get:Rule
     var mainCoroutineRule = MainCoroutineRule()
 
 
-    private var firstReminder = ReminderDataItem("location_title", "description","selected_location",(-50..50).random().toDouble(),(-50..50).random().toDouble())
+    private var firstReminder = ReminderDataItem(
+        "location_title",
+        "description",
+        "selected_location",
+        (-50..50).random().toDouble(),
+        (-50..50).random().toDouble()
+    )
 
     private lateinit var fakeDataSource: FakeDataSource
-    private  var saveReminderViewModel: SaveReminderViewModel?=null
+    private var saveReminderViewModel: SaveReminderViewModel? = null
+
     @Before
     fun setUp() {
         fakeDataSource = FakeDataSource()
-        saveReminderViewModel = SaveReminderViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
+        saveReminderViewModel =
+            SaveReminderViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
     }
 
     @After
@@ -52,7 +58,7 @@ class SaveReminderViewModelTest {
     fun validateAndSaveReminder() {
         mainCoroutineRule.pauseDispatcher()
         saveReminderViewModel!!.validateAndSaveReminder(firstReminder)
-        assertThat(saveReminderViewModel!!.showLoading.getOrAwaitValue(),`is`(true))
+        assertThat(saveReminderViewModel!!.showLoading.getOrAwaitValue(), `is`(true))
         mainCoroutineRule.resumeDispatcher()
         assertThat(saveReminderViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
     }
@@ -62,35 +68,49 @@ class SaveReminderViewModelTest {
         firstReminder.title = "location_title"
         firstReminder.location = "selected_location"
         val result = saveReminderViewModel!!.validateEnteredData(firstReminder)
-        Assert.assertEquals(true,result)
+        Assert.assertEquals(true, result)
     }
+
     @Test
     fun `validate entered data with null title, returns snackbar with error message`() {
         firstReminder.title = null
         saveReminderViewModel!!.validateEnteredData(firstReminder)
-        assertThat(saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(), `is`(R.string.err_enter_title))
+        assertThat(
+            saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_enter_title)
+        )
     }
+
     @Test
     fun `validate entered data with empty title, returns false`() {
         firstReminder.title = ""
         val result = saveReminderViewModel!!.validateEnteredData(firstReminder)
-        Assert.assertEquals(false,result)
+        Assert.assertEquals(false, result)
     }
+
     @Test
     fun `validate entered data with null location, returns snackbar with error message`() {
         firstReminder.title = "location_title"
         firstReminder.location = null
         saveReminderViewModel!!.validateEnteredData(firstReminder)
-        assertThat(saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(), `is`(R.string.err_select_location))
+        assertThat(
+            saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_select_location)
+        )
     }
+
     @Test
     fun `validate entered data with empty location, returns snackbar with error message`() {
         firstReminder.location = ""
         saveReminderViewModel!!.validateEnteredData(firstReminder)
-        assertThat(saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(), `is`(R.string.err_select_location))
+        assertThat(
+            saveReminderViewModel!!.showSnackBarInt.getOrAwaitValue(),
+            `is`(R.string.err_select_location)
+        )
     }
+
     @Test
-    fun testTest(){
+    fun testTest() {
         Assert.assertFalse(false)
     }
 

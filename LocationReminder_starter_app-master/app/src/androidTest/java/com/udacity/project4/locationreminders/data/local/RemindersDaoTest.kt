@@ -6,7 +6,6 @@ import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.filters.SmallTest
 import com.udacity.project4.locationreminders.data.dto.ReminderDTO
-import com.udacity.project4.locationreminders.data.dto.Result
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.test.runBlockingTest
@@ -56,6 +55,7 @@ class RemindersDaoTest {
         ).build()
 
     }
+
     @After
     fun tearDown() {
         if (::database.isInitialized)
@@ -77,6 +77,7 @@ class RemindersDaoTest {
         assertThat(loaded.latitude, `is`(firstReminder.latitude))
         assertThat(loaded.longitude, `is`(firstReminder.longitude))
     }
+
     @Test
     fun getAllRemindersInDBCheckRetrievingRemindersAndRemindersListSize() = runBlockingTest {
 
@@ -94,6 +95,7 @@ class RemindersDaoTest {
         val loaded = database.reminderDao().getReminderById(secondReminder.id)
         assertThat(loaded, nullValue())
     }
+
     @Test
     fun deleteAllRemindersFromDBAreDeletedSuccessfullyAndCheckGetRemindersReturnEmptyListOfReminders() =
         runBlocking {

@@ -127,6 +127,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
         dataBindingIdlingResource.monitorFragment(fragment)
         onView(withId(R.id.noDataTextView)).check(matches(isDisplayed()))
     }
+
     @Test
     fun checkBehaviorWhenClickOnAddReminderFloatingActionButtonToNavigateSaveReminderFragment() {
         val fragment = launchFragmentInContainer<ReminderListFragment>(Bundle(), R.style.AppTheme)
@@ -143,6 +144,7 @@ class ReminderListFragmentTest : AutoCloseKoinTest() {
             ReminderListFragmentDirections.toSaveReminder()
         )
     }
+
     @Test
     fun saveRemindersAndCheckIfAllDisplay() {
         runBlocking {
