@@ -1,20 +1,15 @@
 package com.udacity.project4.locationreminders
 
 import android.app.Application
-import android.icu.lang.UCharacter.GraphemeClusterBreak.V
 import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
-import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
-import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.assertion.ViewAssertions.matches
-import androidx.test.espresso.matcher.RootMatchers.withDecorView
-import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -29,7 +24,6 @@ import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.locationreminders.util.DataBindingIdlingResource
 import com.udacity.project4.locationreminders.util.monitorActivity
 import kotlinx.coroutines.runBlocking
-import org.hamcrest.CoreMatchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -38,16 +32,17 @@ import org.junit.runner.RunWith
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.core.context.startKoin
 import org.koin.core.context.stopKoin
+import org.koin.core.module.Module
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 
-//END TO END test to black box test the app
 @RunWith(AndroidJUnit4::class)
 @LargeTest
-class RemindersActivityTest: AutoCloseKoinTest() {
-    private lateinit var repository: ReminderDataSource
-    private lateinit var application: Application
+class RemindersActivityTest : AutoCloseKoinTest() {
+    private var repository: ReminderDataSource?=null
+    private var application: Application?=null
+    private var testModule: Module?=null
 
 
     @get:Rule
@@ -70,29 +65,29 @@ class RemindersActivityTest: AutoCloseKoinTest() {
     fun setUp() {
         stopKoin()
         application = ApplicationProvider.getApplicationContext()
-        val myModule = module {
+        testModule = module {
             viewModel {
                 RemindersListViewModel(
-                    application,
+                    application!!,
                     get() as ReminderDataSource
                 )
             }
             single {
                 SaveReminderViewModel(
-                    application,
+                    application!!,
                     get() as ReminderDataSource
                 )
             }
-            single { RemindersLocalRepository(get())as ReminderDataSource }
-            single { LocalDB.createRemindersDao(application) }
+            single { RemindersLocalRepository(get()) as ReminderDataSource }
+            single { LocalDB.createRemindersDao(application!!) }
         }
         startKoin {
-            modules(listOf(myModule))
+            modules(listOf(testModule!!))
         }
         repository = get()
 
         runBlocking {
-            repository.deleteAllReminders()
+            repository!!.deleteAllReminders()
         }
         activityScenarioRule.scenario.onActivity { activity ->
             decorView = activity.window.decorView
@@ -107,7 +102,12 @@ class RemindersActivityTest: AutoCloseKoinTest() {
     @After
     fun unregisterIdlingResource() {
         IdlingRegistry.getInstance().unregister(dataBindingIdlingResource)
+        application = null
+        testModule = null
+        repository = null
+        activityScenarioRule.scenario.close()
     }
+
     @Test
     fun saveValidReminderWithCorrectTitleAndCurrentLocationSavedToDBSuccessSave() {
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
@@ -146,7 +146,7 @@ class RemindersActivityTest: AutoCloseKoinTest() {
 
         onView(withId(R.id.addReminderFAB)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
-        onView(withText(application.getString(R.string.err_enter_title))).check(matches(isDisplayed()))
+        onView(withText(application!!.getString(R.string.err_enter_title))).check(matches(isDisplayed()))
 
         activityScenario.close()
     }
@@ -159,7 +159,7 @@ class RemindersActivityTest: AutoCloseKoinTest() {
         onView(withId(R.id.addReminderFAB)).perform(click())
         onView(withId(R.id.reminderTitle)).perform(replaceText("Test Reminder Title"))
         onView(withId(R.id.saveReminder)).perform(click())
-        onView(withText(application.getString(R.string.err_select_location))).check(
+        onView(withText(application!!.getString(R.string.err_select_location))).check(
             matches(
                 isDisplayed()
             )
@@ -167,6 +167,7 @@ class RemindersActivityTest: AutoCloseKoinTest() {
 
         activityScenario.close()
     }
+
     @Test
     fun checkEmptyListWithDisplayNoDataView() {
         val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
