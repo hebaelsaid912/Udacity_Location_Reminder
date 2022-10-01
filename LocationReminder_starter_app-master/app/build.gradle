@@ -125,7 +125,7 @@ dependencies {
     androidTestImplementation "androidx.test.espresso:espresso-contrib:$espressoVersion"
     androidTestImplementation "androidx.test.espresso:espresso-intents:$espressoVersion"
     androidTestImplementation "androidx.test.espresso.idling:idling-concurrent:$espressoVersion"
-    androidTestImplementation "junit:junit:$junitVersion"
+    //androidTestImplementation "junit:junit:$junitVersion"
     // Once https://issuetracker.google.com/127986458 is fixed this can be testImplementation
     // not yet resolved, for now is ok debug implementation
     debugImplementation "androidx.fragment:fragment-testing:$fragmentVersion"
