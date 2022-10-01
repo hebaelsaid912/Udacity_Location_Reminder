@@ -1,11 +1,8 @@
 package com.udacity.project4.locationreminders.savereminder
 
-import android.app.Application
 import androidx.arch.core.executor.testing.InstantTaskExecutorRule
 import androidx.test.core.app.ApplicationProvider
 import androidx.test.ext.junit.runners.AndroidJUnit4
-import com.google.common.truth.Truth
-import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.locationreminders.MainCoroutineRule
 import com.udacity.project4.locationreminders.data.FakeDataSource
 import com.udacity.project4.locationreminders.getOrAwaitValue
@@ -21,11 +18,9 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.koin.core.context.stopKoin
 
-/*@ExperimentalCoroutinesApi
-@RunWith(AndroidJUnit4::class)*/
 @ExperimentalCoroutinesApi
+@RunWith(AndroidJUnit4::class)
 class SaveReminderViewModelTest {
     // Executes each task synchronously using Architecture Components.
     @get:Rule
@@ -37,24 +32,20 @@ class SaveReminderViewModelTest {
     var mainCoroutineRule = MainCoroutineRule()
 
 
-    private var list = listOf<ReminderDataItem>(ReminderDataItem("location_title", "description","selected_location",(-50..50).random().toDouble(),(-50..50).random().toDouble()))
-    private var firstReminder = list[0]
+    private var firstReminder = ReminderDataItem("location_title", "description","selected_location",(-50..50).random().toDouble(),(-50..50).random().toDouble())
 
     private lateinit var fakeDataSource: FakeDataSource
-    private  var application: Application?=null
     private  var saveReminderViewModel: SaveReminderViewModel?=null
     @Before
     fun setUp() {
         fakeDataSource = FakeDataSource()
         saveReminderViewModel = SaveReminderViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
-        application = ApplicationProvider.getApplicationContext()
     }
 
     @After
     fun tearDown() {
         fakeDataSource = FakeDataSource(null)
         saveReminderViewModel = null
-        application = null
     }
 
     @Test
