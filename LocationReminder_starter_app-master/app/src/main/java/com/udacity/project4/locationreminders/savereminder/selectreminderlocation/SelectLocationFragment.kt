@@ -18,6 +18,7 @@ import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
 import com.google.android.gms.tasks.CancellationTokenSource
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.databinding.FragmentSelectLocationBinding
@@ -82,10 +83,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         // Add clickListener to the confirmButton
         binding.confirmButton.setOnClickListener {
-            if (selectedLocName.isEmpty()) {
-                Toast.makeText(requireContext(), "No location selected!", Toast.LENGTH_LONG)
-                    .show()
-            } else {
+            if(!checkLocationPermission()) {
+                if (selectedLocName.isEmpty()) {
+                    Toast.makeText(requireContext(), "No location selected!", Toast.LENGTH_LONG)
+                        .show()
+                }
+                Snackbar.make(
+                    view!!,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    fetchLocationPermission()
+                }.show()
+            }else {
                 onLocationSelected()
             }
         }
@@ -242,9 +251,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
     }
 
-    /*private fun fetchLocationPermission() {
+    private fun fetchLocationPermission() {
         if (!checkLocationPermission()) {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
         }
-    }*/
+    }
 }
