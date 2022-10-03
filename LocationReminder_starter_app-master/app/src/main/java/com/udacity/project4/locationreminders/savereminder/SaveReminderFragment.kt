@@ -82,14 +82,14 @@ class SaveReminderFragment : BaseFragment() {
 //             2) save the reminder to the local db
             reminderFromViewModel = ReminderDataItem(title, description, location, latitude, longitude)
 
-            if (!_viewModel.validateEnteredData(reminderFromViewModel)) {
-                Toast.makeText(
-                    requireContext(), "ERROR: Invalid reminder data!!",
-                    Toast.LENGTH_LONG
-                ).show()
-                return@setOnClickListener
+            if (_viewModel.validateEnteredData(reminderFromViewModel)) {
+                if (isBackgroundPermissionOk) {
+                    checkDeviceLocationSettings()
+                } else {
+                    fetchBackgroundLocationPermission()
+                }
             }
-           fetchBackgroundLocationPermission()
+
         }
     }
 

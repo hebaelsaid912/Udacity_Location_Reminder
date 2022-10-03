@@ -2,15 +2,19 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.app.AlertDialog
+import android.content.IntentSender
 import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
+import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
 import com.google.android.gms.maps.CameraUpdateFactory
 import com.google.android.gms.maps.GoogleMap
@@ -54,22 +58,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
-        /*requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             Log.d(TAG, "onCreateView: permissionLauncher ")
-             val isLocationGranted =  permissions[Manifest.permission.ACCESS_FINE_LOCATION]
+            val isLocationGranted =  permissions[Manifest.permission.ACCESS_FINE_LOCATION]
             if (!isLocationGranted!!) {
                 Toast.makeText(
                     requireContext(),
                     " location permission is NOT granted!",
                     Toast.LENGTH_LONG
-                )
-                    .show()
-                //fetchLocationPermission()
+                ).show()
+                checkDeviceLocationSettings()
             }else {
                 selectCurrentLocationOnMap()
             }
 
-        }*/
+        }
 
 //        TODO: add the map setup implementation
         val mapFragment =
@@ -92,7 +95,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     view!!,
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
                 ).setAction(android.R.string.ok) {
-                    fetchLocationPermission()
+                    AlertDialog.Builder(requireContext())
+                        .setTitle("Permission Required")
+                        .setMessage("Need Location Permission To Continue Use This Feature")
+                        .setPositiveButton("yes"){ dialog, which ->
+                            fetchLocationPermission()
+                        }
+                        .create().show()
                 }.show()
             }else {
                 onLocationSelected()
@@ -212,6 +221,24 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             Log.d(TAG, "Exception: ${e.message}")
         }
     }
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            // Customize the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            val success = map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+
+            if (!success) {
+                Toast.makeText(context,"Style parsing failed.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Resources.NotFoundException) {
+            Toast.makeText(context, "error $e",Toast.LENGTH_LONG).show()
+        }
+    }
     private fun getCurrentDeviceLocation(callback: (LatLng) -> Unit) {
         try {
             val getCurrentLocation = fusedLocationProviderClient.getCurrentLocation(
@@ -232,28 +259,33 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         return Permissions.checkLocationPermission(requireContext())
     }
 
-    private fun setMapStyle(map: GoogleMap) {
-        try {
-            // Customize the styling of the base map using a JSON object defined
-            // in a raw resource file.
-            val success = map.setMapStyle(
-                MapStyleOptions.loadRawResourceStyle(
-                    requireContext(),
-                    R.raw.map_style
-                )
-            )
-
-            if (!success) {
-                Toast.makeText(context,"Style parsing failed.", Toast.LENGTH_LONG).show()
-            }
-        } catch (e: Resources.NotFoundException) {
-            Toast.makeText(context, "error $e",Toast.LENGTH_LONG).show()
-        }
-    }
-
     private fun fetchLocationPermission() {
         if (!checkLocationPermission()) {
-            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
+            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
     }
+   private fun checkDeviceLocationSettings() {
+       val requestLocation = LocationRequest.create().apply {
+           priority = LocationRequest.PRIORITY_LOW_POWER
+       }
+       val builder = LocationSettingsRequest.Builder().addLocationRequest(requestLocation)
+       val settingsClient = LocationServices.getSettingsClient(requireActivity())
+       val locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build())
+       locationSettingsResponseTask.addOnFailureListener { ex ->
+           if (ex is ResolvableApiException) {
+               try {
+                   val intentSenderRequest =
+                       IntentSenderRequest.Builder(ex.resolution).build()
+                 //  isLocationGranted.launch(intentSenderRequest)
+               } catch (sendEx: IntentSender.SendIntentException) {
+                   Log.d(
+                       TAG,
+                       "Error open location settings : " + sendEx.message
+                   )
+               }
+           } else {
+               checkDeviceLocationSettings()
+           }
+       }
+   }
 }

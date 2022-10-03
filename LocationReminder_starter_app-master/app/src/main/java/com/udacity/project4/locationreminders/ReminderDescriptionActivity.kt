@@ -35,11 +35,12 @@ class ReminderDescriptionActivity : AppCompatActivity() {
 //        TODO: Add the implementation of the reminder details
         val reminder = intent.extras!![EXTRA_ReminderDataItem] as ReminderDataItem
         reminder.let { reminderDataItem ->
-            ReminderDataItem(
+            /*ReminderDataItem(
                 reminderDataItem.title, reminderDataItem.description,
                 reminderDataItem.location, reminderDataItem.latitude,
                 reminderDataItem.longitude, reminderDataItem.id
-            )
+            )*/
+            binding.reminderDataItem = reminderDataItem
         }
     }
 }

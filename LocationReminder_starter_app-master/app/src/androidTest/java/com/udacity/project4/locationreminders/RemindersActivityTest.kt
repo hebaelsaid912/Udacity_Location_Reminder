@@ -4,12 +4,17 @@ import android.app.Application
 import android.view.View
 import androidx.test.core.app.ActivityScenario
 import androidx.test.core.app.ApplicationProvider
+import androidx.test.espresso.Espresso
 import androidx.test.espresso.Espresso.onView
 import androidx.test.espresso.IdlingRegistry
 import androidx.test.espresso.action.ViewActions
 import androidx.test.espresso.action.ViewActions.click
 import androidx.test.espresso.action.ViewActions.replaceText
+import androidx.test.espresso.assertion.ViewAssertions
 import androidx.test.espresso.assertion.ViewAssertions.matches
+import androidx.test.espresso.matcher.RootMatchers
+import androidx.test.espresso.matcher.RootMatchers.withDecorView
+import androidx.test.espresso.matcher.ViewMatchers
 import androidx.test.espresso.matcher.ViewMatchers.*
 import androidx.test.ext.junit.rules.ActivityScenarioRule
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -23,7 +28,9 @@ import com.udacity.project4.locationreminders.reminderslist.RemindersListViewMod
 import com.udacity.project4.locationreminders.savereminder.SaveReminderViewModel
 import com.udacity.project4.locationreminders.util.DataBindingIdlingResource
 import com.udacity.project4.locationreminders.util.monitorActivity
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.hamcrest.CoreMatchers
 import org.junit.After
 import org.junit.Before
 import org.junit.Rule
@@ -36,6 +43,8 @@ import org.koin.core.module.Module
 import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
+import org.hamcrest.Matchers.not
+import org.hamcrest.Matchers.`is`
 
 @RunWith(AndroidJUnit4::class)
 @LargeTest
@@ -128,6 +137,9 @@ class RemindersActivityTest : AutoCloseKoinTest() {
             .check(matches(isDisplayed()))
 
         onView(withId(R.id.google_map)).perform(click())
+        runBlocking {
+            delay(1000L)
+        }
         onView(withId(R.id.confirmButton)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
 
@@ -135,6 +147,31 @@ class RemindersActivityTest : AutoCloseKoinTest() {
             .check(matches(isDisplayed()))
         onView(withText(reminderDesc))
             .check(matches(isDisplayed()))
+        activityScenario.close()
+    }
+    @Test
+    fun saveValidReminderWithCorrectTitleAndCurrentLocationSavedToDBSuccessSaveShowToastMessage() {
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.noDataTextView))
+            .check(matches(isDisplayed()))
+        onView(withId(R.id.addReminderFAB)).perform(click())
+        onView(withId(R.id.reminderTitle))
+            .perform(replaceText("Test Reminder Title"))
+        onView(withId(R.id.reminderDescription))
+            .perform(replaceText("Test Reminder Description"))
+        onView(withId(R.id.selectLocation)).perform(click())
+        onView(withId(R.id.google_map)).perform(click())
+        runBlocking {
+            delay(1000L)
+        }
+        onView(withId(R.id.confirmButton)).perform(click())
+        onView(withId(R.id.saveReminder)).perform(click())
+        onView(withText(application!!.getString(R.string.reminder_saved))).inRoot(
+            withDecorView(not(decorView))
+        ).check(matches(isDisplayed()))
 
         activityScenario.close()
     }
@@ -151,7 +188,8 @@ class RemindersActivityTest : AutoCloseKoinTest() {
                 isDisplayed()
             )
         )
-
+        onView(withText(R.string.err_enter_title)).inRoot(withDecorView(not(decorView)))
+            .check(matches(isDisplayed()))
         activityScenario.close()
     }
 
@@ -168,6 +206,8 @@ class RemindersActivityTest : AutoCloseKoinTest() {
                 isDisplayed()
             )
         )
+        onView(withText(R.string.err_select_location)).inRoot(withDecorView(not(decorView)))
+            .check(matches(isDisplayed()))
 
         activityScenario.close()
     }
