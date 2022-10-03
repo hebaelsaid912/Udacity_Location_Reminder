@@ -16,6 +16,7 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -40,6 +41,7 @@ class RemindersListViewModelTest {
 
     @After
     fun tearDown() {
+        stopKoin()
         fakeDataSource = FakeDataSource(null)
         reminderListViewModel = null
     }
@@ -61,6 +63,16 @@ class RemindersListViewModelTest {
         assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
         assertThat(reminderListViewModel!!.showSnackBar.getOrAwaitValue(), `is`("No reminders found"))
     }
+    @Test
+    fun `load reminders with null reminders return exception error`() {
+        fakeDataSource = FakeDataSource(null)
+        fakeDataSource.setReturnError(true)
+        reminderListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
+        reminderListViewModel!!.loadReminders()
+        assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
+        assertThat(reminderListViewModel!!.showSnackBar.getOrAwaitValue(), `is`(Exception("Test exception").toString()))
+    }
+
     @Test
     fun `load reminders with list of reminders return number of reminders in list`() {
         reminderListViewModel!!.loadReminders()

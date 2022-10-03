@@ -18,6 +18,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.koin.core.context.stopKoin
 
 @ExperimentalCoroutinesApi
 @RunWith(AndroidJUnit4::class)
@@ -50,6 +51,7 @@ class SaveReminderViewModelTest {
 
     @After
     fun tearDown() {
+        stopKoin()
         fakeDataSource = FakeDataSource(null)
         saveReminderViewModel = null
     }
