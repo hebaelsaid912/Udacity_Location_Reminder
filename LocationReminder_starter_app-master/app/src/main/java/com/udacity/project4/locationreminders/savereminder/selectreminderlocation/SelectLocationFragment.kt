@@ -2,6 +2,7 @@ package com.udacity.project4.locationreminders.savereminder.selectreminderlocati
 
 
 import android.Manifest
+import android.content.res.Resources
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -43,7 +44,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         binding =
             DataBindingUtil.inflate(inflater, R.layout.fragment_select_location, container, false)
 
@@ -52,7 +53,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
-        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+        /*requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
             Log.d(TAG, "onCreateView: permissionLauncher ")
              val isLocationGranted =  permissions[Manifest.permission.ACCESS_FINE_LOCATION]
             if (!isLocationGranted!!) {
@@ -62,12 +63,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     Toast.LENGTH_LONG
                 )
                     .show()
-                fetchLocationPermission()
+                //fetchLocationPermission()
             }else {
                 selectCurrentLocationOnMap()
             }
 
-        }
+        }*/
 
 //        TODO: add the map setup implementation
         val mapFragment =
@@ -144,13 +145,9 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
-
-        if (Permissions.checkLocationPermission(requireContext())
-        ) {
-            selectCurrentLocationOnMap()
-        } else {
-            requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
-        }
+        setMapStyle(map)
+        setPoiClick(map)
+        selectCurrentLocationOnMap()
     }
     private fun selectCurrentLocationOnMap() {
         if (checkLocationPermission()) {
@@ -182,17 +179,22 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     .snippet(snippet)
             )
         }
+    }
+    private fun setPoiClick(map: GoogleMap) {
         map.setOnPoiClickListener { poi ->
             activeMarker?.remove()
-            activeMarker = map.addMarker(
+            activeMarker= map.addMarker(
                 MarkerOptions()
                     .position(poi.latLng)
                     .title(poi.name)
             )
-            activeMarker?.showInfoWindow()
+            val zoomLevel = 15f
+            map.moveCamera(CameraUpdateFactory.newLatLngZoom(poi.latLng, zoomLevel))
+            activeMarker!!.showInfoWindow()
             setLocationData(poi.name, poi.latLng.latitude, poi.latLng.longitude)
         }
     }
+
     private fun updateMap() {
         try {
             map.isMyLocationEnabled = checkLocationPermission()
@@ -221,9 +223,28 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         return Permissions.checkLocationPermission(requireContext())
     }
 
-    private fun fetchLocationPermission() {
+    private fun setMapStyle(map: GoogleMap) {
+        try {
+            // Customize the styling of the base map using a JSON object defined
+            // in a raw resource file.
+            val success = map.setMapStyle(
+                MapStyleOptions.loadRawResourceStyle(
+                    requireContext(),
+                    R.raw.map_style
+                )
+            )
+
+            if (!success) {
+                Toast.makeText(context,"Style parsing failed.", Toast.LENGTH_LONG).show()
+            }
+        } catch (e: Resources.NotFoundException) {
+            Toast.makeText(context, "error $e",Toast.LENGTH_LONG).show()
+        }
+    }
+
+    /*private fun fetchLocationPermission() {
         if (!checkLocationPermission()) {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION,Manifest.permission.ACCESS_COARSE_LOCATION))
         }
-    }
+    }*/
 }
