@@ -83,10 +83,9 @@ class SaveReminderFragment : BaseFragment() {
             reminderFromViewModel = ReminderDataItem(title, description, location, latitude, longitude)
 
             if (_viewModel.validateEnteredData(reminderFromViewModel)) {
-                if (isBackgroundPermissionOk) {
+                if (!isBackgroundPermissionOk) {
+                    Log.d(TAG, "onViewCreated: isBackgroundPermissionOk not")
                     checkDeviceLocationSettings()
-                } else {
-                    fetchBackgroundLocationPermission()
                 }
             }
 

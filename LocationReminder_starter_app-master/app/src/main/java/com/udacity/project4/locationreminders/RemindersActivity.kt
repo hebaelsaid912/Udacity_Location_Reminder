@@ -10,7 +10,11 @@ import com.udacity.project4.R
  * The RemindersActivity that holds the reminders fragments
  */
 class RemindersActivity : AppCompatActivity() {
-    private lateinit var navHostFragment: NavHostFragment
+    private val navHostFragment by lazy {
+        val navHostFragment = this.supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navHostFragment.navController
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_reminders)
@@ -20,7 +24,7 @@ class RemindersActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             android.R.id.home -> {
-                navHostFragment.navController.popBackStack()
+                navHostFragment.navigateUp()
                 return true
             }
         }
