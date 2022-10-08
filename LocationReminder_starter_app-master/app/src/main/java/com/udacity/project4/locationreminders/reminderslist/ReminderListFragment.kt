@@ -26,9 +26,6 @@ import org.koin.androidx.viewmodel.ext.android.viewModel
 private const val TAG = "ReminderListFragment"
 
 class ReminderListFragment : BaseFragment() {
-    // access location
-    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
-    private var isLocationPermissionGranted = false
 
     //use Koin to retrieve the ViewModel instance
     override val _viewModel: RemindersListViewModel by viewModel()
@@ -56,14 +53,6 @@ class ReminderListFragment : BaseFragment() {
                     activity?.finish()
                 }
             })
-        requestPermissionLauncher =
-            registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
-                Log.d(TAG, "onCreateView: permissionLauncher ")
-                isLocationPermissionGranted =
-                    permissions[Manifest.permission.ACCESS_FINE_LOCATION]
-                        ?: isLocationPermissionGranted
-            }
-        fetchLocationPermission()
         return binding.root
     }
 
@@ -117,15 +106,5 @@ class ReminderListFragment : BaseFragment() {
 //        display logout as menu item
         inflater.inflate(R.menu.main_menu, menu)
     }
-
-
-    private fun fetchLocationPermission() {
-        isLocationPermissionGranted = Permissions.checkLocationPermission(requireContext())
-        if (!isLocationPermissionGranted) {
-            Permissions.requestLocationPermission()
-        }
-        if (permissionRequestList.isNotEmpty()) {
-            requestPermissionLauncher.launch(permissionRequestList.toTypedArray())
-        }
-    }
+    
 }
