@@ -66,6 +66,16 @@ class SaveReminderViewModelTest {
     }
 
     @Test
+    fun `validate entered data with correct title and save reminder show toast with success message`() {
+        firstReminder.title = "location_title"
+        firstReminder.location = "selected_location"
+        saveReminderViewModel!!.saveReminder(firstReminder)
+        assertThat(
+            saveReminderViewModel!!.showToast.getOrAwaitValue(),
+            `is`("Reminder Saved !")
+        )
+    }
+    @Test
     fun `validate entered data with correct title and location returns true`() {
         firstReminder.title = "location_title"
         firstReminder.location = "selected_location"

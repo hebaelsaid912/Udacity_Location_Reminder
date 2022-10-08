@@ -78,4 +78,10 @@ class RemindersListViewModelTest {
         reminderListViewModel!!.loadReminders()
         assertThat(reminderListViewModel!!.remindersList.getOrAwaitValue().size, `is`(remindersList.size))
     }
+    @Test
+    fun `load reminders check error `() {
+        fakeDataSource.setReturnError(true)
+        reminderListViewModel!!.loadReminders()
+        assertThat(reminderListViewModel!!.showSnackBar.getOrAwaitValue(), `is`(Exception("Test exception").toString()))
+    }
 }
