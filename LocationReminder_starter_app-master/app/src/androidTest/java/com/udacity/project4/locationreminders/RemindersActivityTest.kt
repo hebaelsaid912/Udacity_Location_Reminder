@@ -169,9 +169,9 @@ class RemindersActivityTest : AutoCloseKoinTest() {
         }
         onView(withId(R.id.confirmButton)).perform(click())
         onView(withId(R.id.saveReminder)).perform(click())
-        /*onView(withText(application!!.getString(R.string.reminder_saved))).inRoot(
+        onView(withText(application!!.getString(R.string.reminder_saved))).inRoot(
             withDecorView(not(decorView))
-        ).check(matches(isDisplayed()))*/
+        ).check(matches(isDisplayed()))
 
         activityScenario.close()
     }
