@@ -67,11 +67,21 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     " location permission is NOT granted!",
                     Toast.LENGTH_LONG
                 ).show()
-                checkDeviceLocationSettings()
+                //checkDeviceLocationSettings()
+               // findNavController().navigateUp()
             }else {
                 selectCurrentLocationOnMap()
             }
 
+        }
+        if(!checkLocationPermission()) {
+            AlertDialog.Builder(requireContext())
+                .setTitle("Permission Required")
+                .setMessage("Need Location Permission To Continue Use This Feature")
+                .setPositiveButton("yes") { dialog, which ->
+                    fetchLocationPermission()
+                }
+                .create().show()
         }
 
 //        TODO: add the map setup implementation
@@ -91,18 +101,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     Toast.makeText(requireContext(), "No location selected!", Toast.LENGTH_LONG)
                         .show()
                 }
-                Snackbar.make(
+                /*Snackbar.make(
                     view!!,
                     R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
-                ).setAction(android.R.string.ok) {
+                ).setAction(android.R.string.ok) {*/
                     AlertDialog.Builder(requireContext())
                         .setTitle("Permission Required")
-                        .setMessage("Need Location Permission To Continue Use This Feature")
+                        .setMessage("${getString(R.string.location_required_error)}\nNeed Location Permission To Continue Use This Feature")
                         .setPositiveButton("yes"){ dialog, which ->
                             fetchLocationPermission()
                         }
                         .create().show()
-                }.show()
+                //}.show()
             }else {
                 onLocationSelected()
             }
