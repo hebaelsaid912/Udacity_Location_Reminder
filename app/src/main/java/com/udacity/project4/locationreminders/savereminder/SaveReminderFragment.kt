@@ -47,6 +47,7 @@ class SaveReminderFragment : BaseFragment() {
     ) {
         checkDeviceLocationSettings()
     }
+    private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -55,6 +56,21 @@ class SaveReminderFragment : BaseFragment() {
             DataBindingUtil.inflate(inflater, R.layout.fragment_save_reminder, container, false)
         setDisplayHomeAsUpEnabled(true)
         binding.viewModel = _viewModel
+        requestPermissionLauncher = registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) { permissions ->
+            Log.d(TAG, "onCreateView: permissionLauncher ")
+            val isLocationGranted =  permissions[Manifest.permission.ACCESS_FINE_LOCATION]
+            if (!isLocationGranted!!) {
+                Toast.makeText(
+                    requireContext(),
+                    " location permission is NOT granted!",
+                    Toast.LENGTH_LONG
+                ).show()
+
+            }else {
+                requestPermissions()
+            }
+
+        }
         geofencingClient = LocationServices.getGeofencingClient(requireActivity())
         return binding.root
     }
@@ -164,18 +180,14 @@ class SaveReminderFragment : BaseFragment() {
         if (isForegroundAndBackgroundLocationPermissionOk())
             return
         var array = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
-        val request =
-            if (runningQOrLater) {
+        if (runningQOrLater) {
                 array += Manifest.permission.ACCESS_BACKGROUND_LOCATION
                 1
             }
             else
                 2
+        requestPermissionLauncher.launch(array)
 
-        requestPermissions(
-            array,
-            request
-        )
     }
     @RequiresApi(Build.VERSION_CODES.Q)
     @TargetApi(29)
