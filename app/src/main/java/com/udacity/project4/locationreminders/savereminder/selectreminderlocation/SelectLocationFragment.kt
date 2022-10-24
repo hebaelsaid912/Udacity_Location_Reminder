@@ -12,6 +12,7 @@ import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContentProviderCompat.requireContext
 import androidx.databinding.DataBindingUtil
 import androidx.navigation.fragment.findNavController
 import com.google.android.gms.common.api.ResolvableApiException
@@ -96,26 +97,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         // Add clickListener to the confirmButton
         binding.confirmButton.setOnClickListener {
-            if(!checkLocationPermission()) {
                 if (selectedLocName.isEmpty()) {
                     Toast.makeText(requireContext(), "No location selected!", Toast.LENGTH_LONG)
                         .show()
                 }
-                /*Snackbar.make(
-                    view!!,
-                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
-                ).setAction(android.R.string.ok) {*/
-                    AlertDialog.Builder(requireContext())
-                        .setTitle("Permission Required")
-                        .setMessage("${getString(R.string.location_required_error)}\nNeed Location Permission To Continue Use This Feature")
-                        .setPositiveButton("yes"){ dialog, which ->
-                            fetchLocationPermission()
-                        }
-                        .create().show()
-                //}.show()
-            }else {
                 onLocationSelected()
-            }
         }
 
         return binding.root
@@ -191,7 +177,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             updateMap()
         }
 
-        map.setOnMapLongClickListener { latLng ->
+        map.setOnMapClickListener { latLng ->
             val snippet = String.format(
                 Locale.getDefault(),
                 "Lat: %1$.5f, Long: %2$.5f",
@@ -274,28 +260,4 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
             requestPermissionLauncher.launch(arrayOf(Manifest.permission.ACCESS_FINE_LOCATION))
         }
     }
-   private fun checkDeviceLocationSettings() {
-       val requestLocation = LocationRequest.create().apply {
-           priority = LocationRequest.PRIORITY_LOW_POWER
-       }
-       val builder = LocationSettingsRequest.Builder().addLocationRequest(requestLocation)
-       val settingsClient = LocationServices.getSettingsClient(requireActivity())
-       val locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build())
-       locationSettingsResponseTask.addOnFailureListener { ex ->
-           if (ex is ResolvableApiException) {
-               try {
-                   val intentSenderRequest =
-                       IntentSenderRequest.Builder(ex.resolution).build()
-                 //  isLocationGranted.launch(intentSenderRequest)
-               } catch (sendEx: IntentSender.SendIntentException) {
-                   Log.d(
-                       TAG,
-                       "Error open location settings : " + sendEx.message
-                   )
-               }
-           } else {
-               checkDeviceLocationSettings()
-           }
-       }
-   }
 }

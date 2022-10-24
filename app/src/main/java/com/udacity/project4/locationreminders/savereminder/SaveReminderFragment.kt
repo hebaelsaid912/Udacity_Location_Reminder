@@ -21,6 +21,7 @@ import androidx.core.app.ActivityCompat
 import androidx.databinding.DataBindingUtil
 import com.google.android.gms.common.api.ResolvableApiException
 import com.google.android.gms.location.*
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -65,6 +66,7 @@ class SaveReminderFragment : BaseFragment() {
                     " location permission is NOT granted!",
                     Toast.LENGTH_LONG
                 ).show()
+                checkDeviceLocationSettings()
 
             }else {
                 requestPermissions()
@@ -165,7 +167,12 @@ class SaveReminderFragment : BaseFragment() {
                     )
                 }
             } else {
-                checkDeviceLocationSettings()
+                Snackbar.make(
+                    binding.root,
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    checkDeviceLocationSettings()
+                }.show()
             }
         }
         locationSettingsResponseTask.addOnCompleteListener { locationSettingResponse ->
@@ -177,8 +184,10 @@ class SaveReminderFragment : BaseFragment() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun requestPermissions() {
-        if (isForegroundAndBackgroundLocationPermissionOk())
+        if (isForegroundAndBackgroundLocationPermissionOk()) {
+            checkDeviceLocationSettings()
             return
+        }
         var array = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         if (runningQOrLater) {
                 array += Manifest.permission.ACCESS_BACKGROUND_LOCATION

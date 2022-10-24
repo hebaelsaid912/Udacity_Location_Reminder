@@ -56,14 +56,6 @@ class RemindersListViewModelTest {
         assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
     }
     @Test
-    fun `load reminders with null reminders return no reminders found`() {
-        fakeDataSource = FakeDataSource(null)
-        reminderListViewModel = RemindersListViewModel(ApplicationProvider.getApplicationContext(), fakeDataSource)
-        reminderListViewModel!!.loadReminders()
-        assertThat(reminderListViewModel!!.showLoading.getOrAwaitValue(), `is`(false))
-        assertThat(reminderListViewModel!!.showSnackBar.getOrAwaitValue(), `is`("No reminders found"))
-    }
-    @Test
     fun `load reminders with null reminders return exception error`() {
         fakeDataSource = FakeDataSource(null)
         fakeDataSource.setReturnError(true)
