@@ -45,8 +45,12 @@ class SaveReminderFragment : BaseFragment() {
     private var reminderFromViewModel = ReminderDataItem("", "", "", 0.0, 0.0)
     private val requestDeviceLocationOn = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
-    ) {
-        checkDeviceLocationSettings()
+    ) { permission ->
+        if( permission.resultCode == 1) {
+            checkDeviceLocationSettings()
+        }else {
+            createGeofenceRequest(reminderFromViewModel)
+        }
     }
     private lateinit var requestPermissionLauncher: ActivityResultLauncher<Array<String>>
     override fun onCreateView(
@@ -66,7 +70,6 @@ class SaveReminderFragment : BaseFragment() {
                     " location permission is NOT granted!",
                     Toast.LENGTH_LONG
                 ).show()
-                checkDeviceLocationSettings()
 
             }else {
                 requestPermissions()
@@ -148,6 +151,7 @@ class SaveReminderFragment : BaseFragment() {
     }
 
     private fun checkDeviceLocationSettings() {
+        Log.d(TAG, "checkDeviceLocationSettings: 1")
         val requestLocation = LocationRequest.create().apply {
             priority = LocationRequest.PRIORITY_LOW_POWER
         }
@@ -155,16 +159,19 @@ class SaveReminderFragment : BaseFragment() {
         val settingsClient = LocationServices.getSettingsClient(requireActivity())
         val locationSettingsResponseTask = settingsClient.checkLocationSettings(builder.build())
         locationSettingsResponseTask.addOnFailureListener { ex ->
+            Log.d(TAG, "checkDeviceLocationSettings: 2")
             if (ex is ResolvableApiException ) {
                 try {
                     val intentSenderRequest =
                         IntentSenderRequest.Builder(ex.resolution).build()
+                    Log.d(TAG, "checkDeviceLocationSettings: 3")
                     requestDeviceLocationOn.launch(intentSenderRequest)
                 } catch (sendEx: IntentSender.SendIntentException) {
                     Log.d(
                         TAG,
                         "Error open location settings : " + sendEx.message
                     )
+                    Log.d(TAG, "checkDeviceLocationSettings: 4")
                 }
             } else {
                 Snackbar.make(
@@ -173,21 +180,21 @@ class SaveReminderFragment : BaseFragment() {
                 ).setAction(android.R.string.ok) {
                     checkDeviceLocationSettings()
                 }.show()
+                Log.d(TAG, "checkDeviceLocationSettings: 5")
             }
         }
         locationSettingsResponseTask.addOnCompleteListener { locationSettingResponse ->
             if (locationSettingResponse.isSuccessful) {
                 createGeofenceRequest(reminderFromViewModel)
+                Log.d(TAG, "checkDeviceLocationSettings: 6")
             }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun requestPermissions() {
-        if (isForegroundAndBackgroundLocationPermissionOk()) {
-            checkDeviceLocationSettings()
+        if (isForegroundAndBackgroundLocationPermissionOk())
             return
-        }
         var array = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         if (runningQOrLater) {
                 array += Manifest.permission.ACCESS_BACKGROUND_LOCATION
