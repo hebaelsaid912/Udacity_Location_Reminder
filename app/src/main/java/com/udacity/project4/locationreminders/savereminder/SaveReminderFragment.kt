@@ -193,8 +193,10 @@ class SaveReminderFragment : BaseFragment() {
 
     @RequiresApi(Build.VERSION_CODES.Q)
     fun requestPermissions() {
-        if (isForegroundAndBackgroundLocationPermissionOk())
+        if (isForegroundAndBackgroundLocationPermissionOk()) {
+            checkDeviceLocationSettings()
             return
+        }
         var array = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
         if (runningQOrLater) {
                 array += Manifest.permission.ACCESS_BACKGROUND_LOCATION
